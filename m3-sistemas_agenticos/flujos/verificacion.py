@@ -48,13 +48,14 @@ def verificar_backend() -> tuple[bool, str]:
 def verificar_frontend() -> tuple[bool, str]:
     """Instala dependencias si faltan y comprueba que `npm run build` termina sin errores."""
     carpeta = APP / "frontend"
+    npm = "npm.cmd" if os.name == "nt" else "npm"                    # en Windows npm es un .cmd
     if not (carpeta / "package.json").exists():
         return False, "No existe app/frontend/package.json"
     if not (carpeta / "node_modules").exists():
-        ok, log = _correr(["npm", "install"], carpeta)
+        ok, log = _correr([npm, "install"], carpeta)
         if not ok:
             return False, log
-    return _correr(["npm", "run", "build"], carpeta)
+    return _correr([npm, "run", "build"], carpeta)
 
 
 def verificar_app() -> tuple[bool, str]:
