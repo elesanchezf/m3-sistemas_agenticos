@@ -1,6 +1,6 @@
 """Rutas del recurso /api/empleados y catálogo de departamentos."""
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy import func
 from sqlalchemy.orm import Session
 
@@ -41,8 +41,21 @@ def crear_empleado(datos: EmpleadoCrear, db: Session = Depends(obtener_db)) -> E
 
 
 @router.get("/empleados", response_model=list[EmpleadoSalida])
-def listar_empleados(db: Session = Depends(obtener_db)) -> list[Empleado]:
-    return db.query(Empleado).order_by(Empleado.id).all()
+def listar_empleados(
+    buscar: str | None = Query(default=None),
+    departamento: str | None = Query(default=None),
+    db: Session = Depends(obtener_db),
+) -> list[Empleado]:
+    consulta = db.query(Empleado)
+    if departamento:
+        consulta = consulta.filter(Empleado.departamento == departamento)
+    if buscar:
+        patron = f"%{buscar.strip().lower()}%"
+        consulta = consulta.filter(
+            func.minusculas_unicode(Empleado.nombre).like(patron)
+            | func.minusculas_unicode(Empleado.correo).like(patron)
+        )
+    return consulta.order_by(Empleado.id).all()
 
 
 @router.get("/departamentos", response_model=list[str])

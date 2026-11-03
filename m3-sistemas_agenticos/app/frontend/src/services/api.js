@@ -3,8 +3,12 @@ export async function obtenerDepartamentos() {
   return respuesta.json();
 }
 
-export async function obtenerEmpleados() {
-  const respuesta = await fetch("/api/empleados");
+export async function obtenerEmpleados(filtros = {}) {
+  const parametros = new URLSearchParams();
+  if (filtros.buscar) parametros.set("buscar", filtros.buscar);
+  if (filtros.departamento) parametros.set("departamento", filtros.departamento);
+  const consulta = parametros.toString();
+  const respuesta = await fetch(`/api/empleados${consulta ? `?${consulta}` : ""}`);
   return respuesta.json();
 }
 
