@@ -1,8 +1,19 @@
 # Changelog
 
-Cambios relevantes a los agentes, los validadores y los hooks de la fábrica respecto del material inicial del curso. Los cambios en `app/` y `salida/` los generó la fábrica y no se listan aquí.
+Cambios relevantes a los agentes, los validadores y los hooks de la fábrica respecto del material inicial del curso. Los cambios en `app/` y `salida/` los generó la fábrica y no se listan aquí. Los hashes corresponden al historial publicado en `origin/main` desde la rama `entrega-limpia`.
 
-## HU-10 · Reto (2026-11-05, pendiente de commit)
+## Documentación de HU-10 (posterior a la entrega)
+
+- `app/backend/vacaciones.py` y `app/backend/routers/vacaciones.py`: docstrings con propósito, parámetros, resultado, excepciones y reglas de negocio en las siete funciones de HU-10.
+  - Los añadió el agente desarrollador de la fábrica, con hooks y `DEFENSAS=1`, en 13 turnos y por 0.43 USD.
+  - Las nuevas entradas de `auditoria.jsonl` registran sus lecturas y ediciones.
+- Se comprobó que el AST sin docstrings es idéntico al de `03f88e1` y que ambos módulos compilan. No cambian la lógica, los contratos, los mensajes, las pruebas ni los hooks.
+
+## Plantilla de entorno (ee53de7, 2026-11-05)
+
+- `.env.example` vuelve a ser una plantilla sin credenciales.
+
+## HU-10 · Reto entregado (03f88e1, 2026-11-05)
 
 ### Agentes
 
@@ -42,7 +53,7 @@ Cambios relevantes a los agentes, los validadores y los hooks de la fábrica res
 - 0 ciclos de corrección;
 - 1.61 USD.
 
-## Lab 4 · HU-03 y seguridad (543e638, 2026-11-05)
+## Lab 4 · HU-03 y seguridad (d7dfedb, 2026-11-05)
 
 ### Validadores
 
@@ -81,6 +92,6 @@ Cambios relevantes a los agentes, los validadores y los hooks de la fábrica res
   - `confinar_lectura`, `comandos_permitidos` y `auditar` (que escribe en `auditoria.jsonl`) se activan con `DEFENSAS` distinto de 0.
 - Comprobación con HU-99: `filtrar_historia` la bloqueó. Los detalles del contexto envenenado y del endurecimiento de prompts están en `salida/seguridad.md`.
 
-## Lab 2 · HU-01 (d00ea73, 2026-11-03)
+## Lab 2 · HU-01 (0923a8e, 2026-11-03)
 
 - `flujos/verificacion.py`: `verificar_frontend()` usa `npm.cmd` en Windows y `npm` en los demás sistemas, sin `shell=True`. Corrige el `FileNotFoundError` (WinError 2) que impedía compilar el frontend.

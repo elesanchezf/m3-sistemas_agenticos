@@ -19,6 +19,20 @@ router = APIRouter(tags=["vacaciones"])
 
 
 def _solicitudes_del_anio(db: Session, empleado_id: int, anio: int) -> list[VacacionesModelo]:
+    """Obtiene las solicitudes de vacaciones de un empleado en un año.
+
+    Filtra por el año calendario de `fecha_inicio` de cada solicitud;
+    se usa tanto para calcular los días usados al validar una nueva
+    solicitud como para armar el saldo que se consulta.
+
+    Args:
+        db: Sesión de base de datos activa.
+        empleado_id: Identificador interno del empleado.
+        anio: Año calendario a consultar.
+
+    Returns:
+        Las solicitudes del empleado en ese año, ordenadas por id.
+    """
     todas = (
         db.query(VacacionesModelo)
         .filter(VacacionesModelo.empleado_id == empleado_id)
@@ -36,6 +50,37 @@ def _solicitudes_del_anio(db: Session, empleado_id: int, anio: int) -> list[Vaca
 def crear_vacaciones(
     empleado_id: int, datos: VacacionesCrear, db: Session = Depends(obtener_db)
 ) -> VacacionesSalida:
+    """Registra una solicitud de vacaciones si cumple todas las reglas.
+
+    Valida en este orden, devolviendo el primer error que aplique:
+    1. El empleado existe (404).
+    2. El empleado no está dado de baja (409).
+    3. `fecha_fin` no es anterior a `fecha_inicio` (400).
+    4. El periodo no cruza de un año a otro (400).
+    5. El año de la solicitud tiene festivos cargados, es decir,
+       es 2026 o 2027 (400).
+    6. El empleado cumple al menos un año de antigüedad a la fecha
+       de inicio (400).
+    7. El periodo incluye al menos un día hábil (400).
+    8. Los días hábiles solicitados no rebasan el tope anual de
+       12 días hábiles menos lo ya usado en ese año (400).
+
+    Si todo se cumple, crea la solicitud y calcula los días hábiles
+    restantes del año tras descontarla.
+
+    Args:
+        empleado_id: Identificador interno del empleado.
+        datos: Fechas de inicio y fin solicitadas.
+        db: Sesión de base de datos inyectada por FastAPI.
+
+    Returns:
+        La solicitud creada, con sus días hábiles y los días
+        restantes del tope anual tras registrarla.
+
+    Raises:
+        HTTPException: Con el código y la validación que falló,
+            según el orden descrito arriba.
+    """
     empleado = db.get(Empleado, empleado_id)
     if empleado is None:
         raise HTTPException(status_code=404, detail="Empleado no encontrado")
@@ -107,6 +152,25 @@ def obtener_saldo_vacaciones(
     anio: int | None = Query(default=None),
     db: Session = Depends(obtener_db),
 ) -> SaldoVacaciones:
+    """Consulta el saldo de vacaciones de un empleado en un año.
+
+    El tope anual es de 12 días hábiles por año calendario; los días
+    disponibles son ese tope menos la suma de días hábiles de todas
+    las solicitudes registradas en el año consultado.
+
+    Args:
+        empleado_id: Identificador interno del empleado.
+        anio: Año calendario a consultar; si no se indica, se usa
+            el año en curso.
+        db: Sesión de base de datos inyectada por FastAPI.
+
+    Returns:
+        El resumen del año: días usados, días disponibles y el
+        detalle de las solicitudes registradas.
+
+    Raises:
+        HTTPException: Código 404 si el empleado no existe.
+    """
     empleado = db.get(Empleado, empleado_id)
     if empleado is None:
         raise HTTPException(status_code=404, detail="Empleado no encontrado")
