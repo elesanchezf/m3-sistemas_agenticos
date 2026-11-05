@@ -95,14 +95,26 @@ def herramientas_archivos(lectura: list[Path], escritura: Path) -> list[Herramie
     #    y vuelve al paso 3.
     # 8. Si se acaban los pasos, lanza RuntimeError(f"{nombre}: se alcanzó el límite de {max_pasos} pasos").
 def ejecutar_agente(sistema: str, herramientas: list[Herramienta], tarea: str,
-                    max_pasos: int = 10, nombre: str = "agente") -> str:
-    """Llama al modelo, ejecuta las herramientas que pida y repite hasta que responda sin pedir más."""
+                    max_pasos: int = 10, nombre: str = "agente",
+                    max_tokens: int = 16000, effort: str | None = None) -> str:
+    """Llama al modelo, ejecuta las herramientas que pida y repite hasta que responda sin pedir más.
+
+    max_tokens limita la salida total (razonamiento + respuesta). Por encima de 16000 se usa streaming,
+    porque el SDK rechaza peticiones sin streaming que podrían pasar de 10 minutos.
+    effort ("low"…"max") va en output_config; None no lo envía y el modelo usa su valor por defecto.
+    """
     cliente = Anthropic()
     registro = {h.nombre: h for h in herramientas}
     mensajes = [{"role": "user", "content": tarea}]
+    extra = {"output_config": {"effort": effort}} if effort else {}
     for paso in range(max_pasos):
-        resp = cliente.messages.create(model=os.environ["MODEL"], max_tokens=16000, system=sistema,
-                                       tools=[h.esquema() for h in herramientas], messages=mensajes)
+        peticion = dict(model=os.environ["MODEL"], max_tokens=max_tokens, system=sistema,
+                        tools=[h.esquema() for h in herramientas], messages=mensajes, **extra)
+        if max_tokens > 16000:
+            with cliente.messages.stream(**peticion) as flujo:
+                resp = flujo.get_final_message()
+        else:
+            resp = cliente.messages.create(**peticion)
         mensajes.append({"role": "assistant", "content": resp.content})
         print(f"  [{nombre}] stop_reason={resp.stop_reason} · bloques={[b.type for b in resp.content]}")   # ← diagnóstico
         if resp.stop_reason == "max_tokens":   # el corte no pasa en silencio

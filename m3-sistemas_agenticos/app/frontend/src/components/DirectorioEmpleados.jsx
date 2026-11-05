@@ -9,6 +9,7 @@ export default function DirectorioEmpleados({
   onDepartamentoCambia,
   onEditar,
   onBaja,
+  onVacaciones,
 }) {
   const [departamentos, setDepartamentos] = useState([]);
 
@@ -90,6 +91,15 @@ export default function DirectorioEmpleados({
                   >
                     Dar de baja
                   </button>
+                  {empleado.estado === "activo" && (
+                    <button
+                      type="button"
+                      data-testid={`vacaciones-abrir-${empleado.id}`}
+                      onClick={() => onVacaciones?.(empleado)}
+                    >
+                      Solicitar vacaciones
+                    </button>
+                  )}
                 </td>
               </tr>
             ))}
