@@ -7,6 +7,8 @@ export default function DirectorioEmpleados({
   onBuscarCambia,
   departamento,
   onDepartamentoCambia,
+  onEditar,
+  onBaja,
 }) {
   const [departamentos, setDepartamentos] = useState([]);
 
@@ -57,6 +59,7 @@ export default function DirectorioEmpleados({
               <th>Puesto</th>
               <th>Departamento</th>
               <th>Estado</th>
+              <th>Acciones</th>
             </tr>
           </thead>
           <tbody>
@@ -71,6 +74,22 @@ export default function DirectorioEmpleados({
                 <td>{empleado.departamento}</td>
                 <td data-testid={`estado-empleado-${empleado.id}`}>
                   {empleado.estado === "activo" ? "Activo" : "Baja"}
+                </td>
+                <td>
+                  <button
+                    type="button"
+                    data-testid={`editar-empleado-${empleado.id}`}
+                    onClick={() => onEditar?.(empleado)}
+                  >
+                    Editar
+                  </button>
+                  <button
+                    type="button"
+                    data-testid={`baja-empleado-${empleado.id}`}
+                    onClick={() => onBaja?.(empleado)}
+                  >
+                    Dar de baja
+                  </button>
                 </td>
               </tr>
             ))}

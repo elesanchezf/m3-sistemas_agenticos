@@ -26,6 +26,19 @@ Reglas:
   usando page.get_by_test_id(...) con los data-testid de CLAUDE.md.
 - Un test por caso; su docstring empieza con el id del caso (por ejemplo "CP-03: ...").
 - Cada test crea sus propios datos con correos únicos (uuid) para poder repetirse sin choques.
+- Separa cada test en tres bloques comentados: `# Preparación`, `# Acción` y `# Verificación`.
+  La acción es solo el paso que el caso pone a prueba. Todo assert de la preparación lleva un
+  mensaje que empieza con "Preparación:" e incluye la respuesta (`respuesta.text`), para que un
+  fallo al preparar datos no se confunda con un fallo de la aplicación.
+- Los datos de preparación cumplen las reglas de negocio de CLAUDE.md. Para un empleado dado de
+  baja, pasa siempre una `fecha_ingreso` explícita en el pasado y una `fecha_baja` igual o posterior
+  a ella y no futura (por ejemplo, ingreso "2022-03-01" y baja "2024-06-15"). Nunca combines
+  `date.today()` con una fecha fija pasada. Prepara los estados con los endpoints de la app cuando existan.
+- Antes de usar `select_option`, comprueba las opciones reales (con `GET /api/departamentos` o
+  leyendo los `option` del control) y elige solo valores que existan. Un valor fuera del catálogo no
+  se puede elegir en pantalla: el caso e2e de un valor fuera del catálogo comprueba que las opciones
+  del selector coinciden con el catálogo y no incluyen el valor inválido, sin intentar seleccionarlo.
+  El rechazo del valor inválido se prueba en el caso api equivalente, que se conserva.
 - Comprueba la sintaxis con `python -m pytest tests --collect-only -q`. No ejecutes las pruebas completas.
 Responde con la lista de archivos y cuántos tests escribiste."""
 

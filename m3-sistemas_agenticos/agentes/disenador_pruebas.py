@@ -3,6 +3,7 @@
 Uso:  python -m agentes.disenador_pruebas salida/HU-01/criterios.feature
 """
 import json
+import re
 import sys
 from pathlib import Path
 from typing import Literal
@@ -36,6 +37,14 @@ Cómo trabajas:
 2. Para cada escenario escribe al menos un caso de nivel "api". Si el escenario involucra la pantalla,
    escribe además uno de nivel "e2e" cuyos pasos mencionen los data-testid que se usan.
 3. Usa datos concretos. Para correos usa el dominio corporativo empresa.com.
+   - Distingue el id interno del número visible. Las rutas y los data-testid usan el `id` entero
+     del empleado creado en la precondición (`/api/empleados/{{id}}`, `editar-empleado-{{id}}`).
+     `numero_empleado` (EMP-000X) solo aparece como dato visible esperado, nunca en una ruta ni en
+     un data-testid.
+   - Usa solo los métodos y rutas de contexto/convenciones_app.md; no escribas alternativas como
+     «PATCH o POST». Para comprobar el estado de un empleado usa una ruta documentada (`GET /api/empleados`).
+   - Un `<select>` solo ofrece los valores del catálogo. Para un valor fuera del catálogo, el caso
+     "api" prueba el rechazo y el caso "e2e" comprueba que el selector no ofrece ese valor.
 4. Guarda los casos llamando a la herramienta guardar_casos (no escribas el JSON a mano).
    - "nivel" solo puede ser "api" o "e2e".
    - En "datos" TODOS los valores son texto: "201", no 201; para un campo vacío usa "", nunca null.
@@ -55,6 +64,19 @@ def validar_plan(texto: str, gherkin: str) -> list[str]:
     ids = [c.id for c in plan.casos]
     if len(ids) != len(set(ids)):
         problemas.append("Hay ids de caso repetidos.")
+    return problemas + revisar_contrato(plan)
+
+
+def revisar_contrato(plan: PlanPruebas) -> list[str]:
+    """Rutas y data-testid con el id entero; en HU-03, editar y dar de baja solo con PUT."""
+    problemas = []
+    solo_put = plan.historia.strip().upper() == "HU-03"              # HU-10 sí usa POST .../vacaciones
+    for c in plan.casos:
+        texto = " ".join([*c.precondiciones, *c.pasos, *c.datos.values(), c.resultado_esperado])
+        if re.search(r"/api/\S*EMP-\d+|[\w-]-EMP-\d+", texto):
+            problemas.append(f"{c.id}: usa numero_empleado (EMP-000X) en una ruta o data-testid; usa el id entero.")
+        if solo_put and re.search(r"\bPATCH\b|\bPOST\s+/api/empleados/\S+", texto):
+            problemas.append(f"{c.id}: usa un método no acordado; editar y dar de baja son PUT.")
     return problemas
 
 
@@ -66,6 +88,8 @@ def herramienta_guardar_casos(destino: Path) -> Herramienta:
         except ValidationError as e:  # el error regresa al modelo como texto, corto y accionable
             raise ValueError("Los casos no cumplen el esquema: " + "; ".join(
                 f"{'.'.join(map(str, err['loc']))}: {err['msg']}" for err in e.errors()[:5]))
+        if problemas := revisar_contrato(plan):
+            raise ValueError("Los casos no respetan el contrato de convenciones_app.md: " + "; ".join(problemas[:5]))
         destino.write_text(plan.model_dump_json(indent=2), encoding="utf-8")
         return f"Guardados {len(plan.casos)} casos en {rel(destino)}"
     return Herramienta(

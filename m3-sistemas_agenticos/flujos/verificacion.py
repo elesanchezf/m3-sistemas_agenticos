@@ -3,6 +3,7 @@
 Cada función devuelve (ok, log). El log regresa al agente responsable cuando algo falla.
 """
 import os
+import re
 import subprocess
 import sys
 import time
@@ -96,6 +97,9 @@ def ejecutar_pruebas(hu: str) -> tuple[bool, str]:
     if reporte.exists():
         for caso in ET.parse(reporte).getroot().iter("testcase"):
             for problema in list(caso.findall("failure")) + list(caso.findall("error")):
-                fallos.append(f"- {caso.get('classname')}::{caso.get('name')}\n  {(problema.get('message') or '')[:400]}")
+                # última línea de tests/ en la traza: el punto exacto del test o fixture que falló
+                lineas = re.findall(r"^(tests[\\/]\S+?\.py:\d+): in ", problema.text or "", re.MULTILINE)
+                donde = "\n  en " + lineas[-1].replace("\\", "/") if lineas else ""
+                fallos.append(f"- {caso.get('classname')}::{caso.get('name')}{donde}\n  {(problema.get('message') or '')[:400]}")
     resumen = r.stdout.strip().splitlines()[-1] if r.stdout.strip() else "sin salida"
     return r.returncode == 0, f"{resumen}\n" + "\n".join(fallos)

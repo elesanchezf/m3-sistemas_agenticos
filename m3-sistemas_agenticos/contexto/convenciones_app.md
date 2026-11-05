@@ -24,6 +24,20 @@ Este archivo se copia como `app/CLAUDE.md`. Claude Code lo lee antes de escribir
 - Errores con la forma `{"detail": "mensaje en español"}` y códigos 404, 409 o 422.
 - Las historias futuras agregarán recursos nuevos (por ejemplo `/api/vacaciones`); el código debe permitir agregarlos sin reescribir lo existente.
 
+### Identificadores
+
+- `id` es el identificador interno: un entero que asigna el sistema. Las rutas (`{id}`) y los `data-testid` (`-{id}`) usan siempre este entero, por ejemplo `/api/empleados/7` y `editar-empleado-7`.
+- `numero_empleado` es el número visible para las personas, con el formato `EMP-000X`. Se muestra en `numero-empleado-{id}`, pero nunca va en una ruta ni en un `data-testid`.
+
+### Editar y dar de baja
+
+| Acción | Método y ruta | Cuerpo | Respuesta |
+| --- | --- | --- | --- |
+| Editar | `PUT /api/empleados/{id}` | `{"puesto": "...", "departamento": "..."}` | 200 con el empleado actualizado |
+| Dar de baja | `PUT /api/empleados/{id}/baja` | `{"fecha_baja": "AAAA-MM-DD"}` | 200 con el empleado en estado `baja` |
+| Repetir la baja | `PUT /api/empleados/{id}/baja` | `{"fecha_baja": "AAAA-MM-DD"}` | 200 con el registro existente; conserva la `fecha_baja` original |
+| Editar después de la baja | `PUT /api/empleados/{id}` | cualquiera | 409 · `{"detail": "No se puede editar a un empleado dado de baja"}` |
+
 ## Selectores para pruebas (data-testid)
 
 Todo elemento que una prueba necesite tocar lleva `data-testid` con estos nombres:
