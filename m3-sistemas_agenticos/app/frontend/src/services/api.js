@@ -26,3 +26,33 @@ export async function crearEmpleado(datos) {
   }
   return cuerpo;
 }
+
+export async function editarEmpleado(id, datos) {
+  const respuesta = await fetch(`/api/empleados/${id}`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(datos),
+  });
+  const cuerpo = await respuesta.json();
+  if (!respuesta.ok) {
+    const error = new Error(cuerpo.detail || "Ocurrió un error inesperado");
+    error.campo = cuerpo.campo || null;
+    throw error;
+  }
+  return cuerpo;
+}
+
+export async function darDeBajaEmpleado(id, fechaBaja) {
+  const respuesta = await fetch(`/api/empleados/${id}/baja`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ fecha_baja: fechaBaja }),
+  });
+  const cuerpo = await respuesta.json();
+  if (!respuesta.ok) {
+    const error = new Error(cuerpo.detail || "Ocurrió un error inesperado");
+    error.campo = cuerpo.campo || null;
+    throw error;
+  }
+  return cuerpo;
+}

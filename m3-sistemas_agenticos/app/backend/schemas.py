@@ -58,6 +58,34 @@ class EmpleadoCrear(BaseModel):
         return valor
 
 
+class EmpleadoEditar(BaseModel):
+    puesto: str | None = None
+    departamento: str | None = None
+
+    @field_validator("puesto")
+    @classmethod
+    def validar_puesto(cls, valor: str | None) -> str | None:
+        if valor is None:
+            return valor
+        if not (2 <= len(valor.strip()) <= 60):
+            raise ValueError("El campo puesto debe tener de 2 a 60 caracteres")
+        return valor
+
+    @field_validator("departamento")
+    @classmethod
+    def validar_departamento(cls, valor: str | None) -> str | None:
+        if valor is None:
+            return valor
+        if valor not in DEPARTAMENTOS_VALIDOS:
+            opciones = ", ".join(DEPARTAMENTOS_VALIDOS)
+            raise ValueError(f"El campo departamento debe ser uno de: {opciones}")
+        return valor
+
+
+class EmpleadoBaja(BaseModel):
+    fecha_baja: date
+
+
 class EmpleadoSalida(BaseModel):
     id: int
     numero_empleado: str
