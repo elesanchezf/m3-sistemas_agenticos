@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import FormularioEmpleado from "./components/FormularioEmpleado";
 import FormularioEdicion from "./components/FormularioEdicion";
 import ModalBaja from "./components/ModalBaja";
+import FormularioVacaciones from "./components/FormularioVacaciones";
 import DirectorioEmpleados from "./components/DirectorioEmpleados";
 import { obtenerDepartamentos, obtenerEmpleados } from "./services/api";
 
@@ -12,6 +13,7 @@ export default function App() {
   const [departamentos, setDepartamentos] = useState([]);
   const [empleadoEditando, setEmpleadoEditando] = useState(null);
   const [empleadoDandoBaja, setEmpleadoDandoBaja] = useState(null);
+  const [empleadoSolicitandoVacaciones, setEmpleadoSolicitandoVacaciones] = useState(null);
 
   function cargarEmpleados() {
     obtenerEmpleados({ buscar, departamento }).then(setEmpleados);
@@ -46,6 +48,11 @@ export default function App() {
           onCancelar={() => setEmpleadoDandoBaja(null)}
           onEmpleadoActualizado={manejarActualizacion}
         />
+      ) : empleadoSolicitandoVacaciones ? (
+        <FormularioVacaciones
+          empleado={empleadoSolicitandoVacaciones}
+          onCancelar={() => setEmpleadoSolicitandoVacaciones(null)}
+        />
       ) : (
         <FormularioEmpleado onEmpleadoCreado={cargarEmpleados} />
       )}
@@ -58,6 +65,7 @@ export default function App() {
         onDepartamentoCambia={setDepartamento}
         onEditar={setEmpleadoEditando}
         onBaja={setEmpleadoDandoBaja}
+        onVacaciones={setEmpleadoSolicitandoVacaciones}
       />
     </main>
   );

@@ -104,3 +104,34 @@ class EmpleadoSalida(BaseModel):
 class ErrorRespuesta(BaseModel):
     detail: str
     campo: str | None = None
+
+
+class VacacionesCrear(BaseModel):
+    fecha_inicio: date
+    fecha_fin: date
+
+
+class SolicitudResumen(BaseModel):
+    id: int
+    fecha_inicio: date
+    fecha_fin: date
+    dias_habiles: int
+
+    model_config = {"from_attributes": True}
+
+
+class VacacionesSalida(BaseModel):
+    id: int
+    empleado_id: int
+    fecha_inicio: date
+    fecha_fin: date
+    dias_habiles: int
+    dias_restantes: int
+
+
+class SaldoVacaciones(BaseModel):
+    empleado_id: int
+    anio: int
+    dias_usados: int
+    dias_disponibles: int
+    solicitudes: list[SolicitudResumen]

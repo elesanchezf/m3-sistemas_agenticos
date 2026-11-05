@@ -5,13 +5,14 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 
 from database import Base, engine
-from routers import empleados
+from routers import empleados, vacaciones
 
 Base.metadata.create_all(bind=engine)
 
 app = FastAPI(title="API de gestión de empleados")
 
 app.include_router(empleados.router, prefix="/api")
+app.include_router(vacaciones.router, prefix="/api")
 
 
 @app.get("/api/salud")

@@ -56,3 +56,26 @@ export async function darDeBajaEmpleado(id, fechaBaja) {
   }
   return cuerpo;
 }
+
+export async function crearVacaciones(empleadoId, datos) {
+  const respuesta = await fetch(`/api/empleados/${empleadoId}/vacaciones`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(datos),
+  });
+  const cuerpo = await respuesta.json();
+  if (!respuesta.ok) {
+    throw new Error(cuerpo.detail || "Ocurrió un error inesperado");
+  }
+  return cuerpo;
+}
+
+export async function obtenerSaldoVacaciones(empleadoId, anio) {
+  const parametros = new URLSearchParams();
+  if (anio) parametros.set("anio", anio);
+  const consulta = parametros.toString();
+  const respuesta = await fetch(
+    `/api/empleados/${empleadoId}/vacaciones${consulta ? `?${consulta}` : ""}`
+  );
+  return respuesta.json();
+}
